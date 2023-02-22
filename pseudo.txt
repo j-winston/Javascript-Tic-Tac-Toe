@@ -1,0 +1,38 @@
+WHILE game still playing 
+    Draw gameboard
+
+    Get player 1 input 
+
+    IF 3 of player 1 token in a row, 
+        END game 
+        PRINT player 1 wins 
+    IF no open boxes
+        END game
+        Display 'TIE'
+        PRINT 'Play Again?'
+        GET input
+        IF 'Y'
+            reset game
+        IF 'N'
+            END game 
+    ELSE Display input 
+
+    GET player 2 input 
+    DISPLAY input 
+    IF 3 of player 2 tokens in a row
+        END game
+        PRINT player 2 wins
+    IF no open boxes remain
+        END game 
+        PRINT 'tie'
+        PRINT 'Play Again?'
+        GET input
+        IF 'Y'
+            RESET game
+        IF 'N' 
+            END game
+            
+    
+
+
+
