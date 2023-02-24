@@ -169,7 +169,6 @@ const player = (name, token) => {
 // Main game loop uses gameController for game flow
 
 const gameController = (() => {
-
   const state = {
     currentPlayer: "",
     playAgain: false,
@@ -214,17 +213,33 @@ const gameController = (() => {
     startGame,
     endGame,
     stillPlaying,
+    getInput,
   };
 })(gameBoard);
 
-// Main game loop
+const displayController = () => {
+  // Event listeners go here as private
+  const drawGrid = () => {
+    // draw grid to screen
+
+    const mark = (pos, token) => {
+      // draw token to screen
+    };
+
+    const print = (mesg) => {
+      // print message to screen
+    };
+  };
+};
+
+// MAIN GAME LOOP
+
 const player1 = player("James", "X");
 const player2 = player("Orin", "O");
 gameController.startGame(player1, player2);
 
-while(gameController.stillPlaying){
-    gameController.getInput();
-
+while (gameController.stillPlaying) {
+  gameController.getInput();
 }
 // Get input and display to screen
 // Check for winner
