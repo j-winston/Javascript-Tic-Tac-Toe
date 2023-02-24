@@ -238,9 +238,9 @@ const player1 = player("James", "X");
 const player2 = player("Orin", "O");
 gameController.startGame(player1, player2);
 
-while (gameController.stillPlaying) {
-  gameController.getInput();
-}
+//while (gameController.stillPlaying) {
+//  gameController.getInput();
+//}
 // Get input and display to screen
 // Check for winner
 // If winner display on screen
