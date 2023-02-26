@@ -47,8 +47,8 @@ body {
 .game-grid {
   display: grid;
   margin-top: 100px;
-  grid-template-columns: 1fr 1fr 1fr; 
-  grid-template-rows: 1fr 1fr 1fr; 
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
 }
 
 .grid-cell {
@@ -63,7 +63,7 @@ body {
 /* Grid cell styles */
 
 .grid-cell.token {
-  font-size: 5rem;
+  font-size: 10rem;
   color: white;
 }
 .grid-cell[data-pos="2,0"],

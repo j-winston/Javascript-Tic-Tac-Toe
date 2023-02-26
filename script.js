@@ -1,15 +1,12 @@
 // Gameboard draws itself and keeps track of where 'X' and 'O' tokens are placed.
 // It also stores state if there is a winner or tie.
-
-const PromptSync = require("prompt-sync");
-
 const gameBoard = (() => {
   // Private properties and methods
   const _gameArray = Array(3);
   // Returns true if space remains
 
   const _currentState = {
-    winner: false,
+    winningToken: false,
     tie: false,
   };
   // Create a 3x3 array to store values.
@@ -38,22 +35,24 @@ const gameBoard = (() => {
   };
 
   // Return winning token if one exists
-  const _checkWinner = () => {
+  const checkForWinner = () => {
     // Check for L->R diagonal match
-    if (
-      _gameArray[0][0] === _gameArray[1][1] &&
-      _gameArray[1][1] === _gameArray[2][2]
-    ) {
-      // If diagonals match, return that token as winner
-      const token = _gameArray[0][0];
-      return token;
-    } else if (
-      // Check for R->L diagonal match
-      _gameArray[2][0] === _gameArray[1][1] &&
-      _gameArray[1][1] === _gameArray[0][2]
-    ) {
-      const token = _gameArray[2][0];
-      return token;
+    if (token != "*") {
+      if (
+        _gameArray[0][0] === _gameArray[1][1] &&
+        _gameArray[1][1] === _gameArray[2][2]
+      ) {
+        // If diagonals match, return that token as winner
+        const token = _gameArray[0][0];
+        return token;
+      } else if (
+        // Check for R->L diagonal match
+        _gameArray[2][0] === _gameArray[1][1] &&
+        _gameArray[1][1] === _gameArray[0][2]
+      ) {
+        const token = _gameArray[2][0];
+        _currentState.winningToken = token;
+      }
     }
 
     // check for 3 way match vertically, starting at beginning of each column
@@ -64,7 +63,7 @@ const gameBoard = (() => {
         if (_gameArray[i][1] === token) {
           if (_gameArray[i][2] === token) {
             // Return winning token
-            return token;
+            _currentState.winningToken = token;
           }
         }
       }
@@ -78,12 +77,11 @@ const gameBoard = (() => {
         // Check next two adjacent tokens to see if match
         if (_gameArray[1][i] === token) {
           if (_gameArray[2][i] === token) {
-            return token;
+            _currentState.winningToken = token;
           }
         }
       }
     }
-
     // If no winner....
     return false;
   };
@@ -91,19 +89,17 @@ const gameBoard = (() => {
   const _updateState = (state) => {
     if (state === "Tie") {
       _currentState.tie == true;
-    } else _currentState.winner = state;
+    }
   };
 
   // Public properties and methods
-  const gameState = () => {
+  const getGameState = () => {
     if (_currentState.tie) {
-      return "Tie";
+      return 'tie'; 
     }
 
-    if (_currentState.winner) {
-      return "The winner is " + _currentState.winner;
-    } else {
-      return "Still playing: " + _currentState.playing;
+    if (_currentState.winningToken) {
+      return _currentState.winningToken;
     }
   };
 
@@ -113,26 +109,21 @@ const gameBoard = (() => {
 
   // Inserts player token into array and returns true if tie or winner,
   // false if space is empty.
-  const insert = (positionMarker) => {
-    const col = positionMarker.col;
-    const row = positionMarker.row;
-    const token = positionMarker.token;
+  const insert = (markedCell) => {
+    const col = markedCell.col;
+    const row = markedCell.row;
+    const token = markedCell.token;
+    const player = markedCell.player;
+
     // Check for tie
     if (_isFull()) {
       _updateState("tie");
-      return true;
     }
 
     // Check for space and insert
     if (_gameArray[col][row] === "*") {
       _gameArray[col][row] = token;
     } else return false;
-
-    // Check for a winner, update state if necessary
-    if (_checkWinner()) {
-      _updateState(_checkWinner());
-      return true;
-    }
   };
 
   const printBoard = () => {
@@ -144,36 +135,70 @@ const gameBoard = (() => {
     }
   };
 
-  return { insert, clearArray, printBoard, gameState };
+  return { insert, clearArray, getGameState, checkForWinner };
 })();
 
-// Player logic
-const player = (name, token) => {
-  const _name = name;
-  const _token = token;
-
-  const markPos = (col, row) => {
-    const tokenPosition = {
-      col,
-      row,
-      token: _token,
-    };
-    return tokenPosition;
-  };
-
-  return { markPos };
+// Player factory
+const makePlayer = (name, token, playerNum) => {
+  return { name, token, playerNum };
 };
 
-// Manipulates DOM elements
+// Draws stuff to screen
+const displayController = (() => {
+  const drawMark = (pos, token) => {
+    // draw token to screen
+  };
 
-// Main game loop uses gameController for game flow
+  const print = (mesg) => {
+    // print message to screen
+  };
+  return {
+    drawMark,
+    print,
+  };
+})();
 
 const gameController = (() => {
+  // Start gameController()
+  const _getCoordinate = (gridNode) => {
+    const col = gridNode.getAttribute("data-pos").split(",")[0];
+    const row = gridNode.getAttribute("data-pos").split(",")[1];
+
+    return { col, row };
+  };
+
+  const markGrid = (gridNode) => {
+    const pos = _getCoordinate(gridNode);
+    const markedCell = {
+      col: pos.col,
+      row: pos.row,
+      player: state.currentPlayer,
+      token: state.currentPlayer.token,
+    };
+    gameBoard.insert(markedCell);
+  };
+
+  const getWinner = () => {
+      if(gameBoard.getGameState){
+
+
+
+      }
+  };
+
   const state = {
     currentPlayer: "",
     playAgain: false,
     stillPlaying: true,
   };
+
+  const turnOnGridEvents = () =>
+    document.querySelectorAll(".grid-cell").forEach((gridNode) => {
+      gridNode.addEventListener("click", () => {
+        markGrid(gridNode);
+          getWinner();
+      });
+    });
 
   const _switchTurns = () => {
     if (state.currentPlayer === player1) {
@@ -187,9 +212,14 @@ const gameController = (() => {
     return state.currentPlayer;
   };
 
+  const _setCurPlayer = (player) => {
+    state.currentPlayer = player;
+  };
+
   const startGame = (player1, player2) => {
     gameBoard.clearArray();
-    state.currentPlayer = player1;
+    turnOnGridEvents();
+    _setCurPlayer(player1);
   };
 
   const endGame = () => {
@@ -206,48 +236,20 @@ const gameController = (() => {
   const getInput = () => {
     // Get currentPlayer input from DOM
     // Switch turns
-    _switchTurns();
+    const pos = displayController.getLastInput();
+    return pos;
   };
 
   return {
     startGame,
-    endGame,
     stillPlaying,
-    getInput,
   };
-})(gameBoard);
+})(gameBoard, displayController); //End gameController()
 
-const displayController = () => {
-  // Event listeners go here as private
-  const drawGrid = () => {
-    // draw grid to screen
+// MAIN
 
-    const mark = (pos, token) => {
-      // draw token to screen
-    };
+const player1 = makePlayer("James", "X", 1);
+const player2 = makePlayer("Orin", "O", 2);
+// Start game
 
-    const print = (mesg) => {
-      // print message to screen
-    };
-  };
-};
-
-// MAIN GAME LOOP
-
-const player1 = player("James", "X");
-const player2 = player("Orin", "O");
 gameController.startGame(player1, player2);
-
-//while (gameController.stillPlaying) {
-//  gameController.getInput();
-//}
-// Get input and display to screen
-// Check for winner
-// If winner display on screen
-// If tie display to screen
-// Ask to play again
-// Get input
-// If not, end game
-// If yes play again
-
-console.log(gameBoard.gameState());
