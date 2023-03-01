@@ -38,9 +38,9 @@ const gameBoard = (() => {
     }
   };
 
-  const _isFull = () => {
+  const checkForTie = () => {
     for (let i = 0; i < _gameArray.length; i++) {
-      for (let j = 0; j < _gameArray.length; i++) {
+      for (let j = 0; j < _gameArray.length; j++) {
         if (_gameArray[i][j] === freeSpaceMarker) {
           return false;
         }
@@ -48,9 +48,7 @@ const gameBoard = (() => {
     }
     return true;
   };
-  const _setLastMarkedCell = (markedCell) => {
-    _currentState.lastMarkedCell = markedCell;
-  };
+  //
   // Return winning token if one exists
   const checkForWinner = () => {
     // Check for L->R diagonal match
@@ -63,7 +61,6 @@ const gameBoard = (() => {
         _gameArray[2][0] === _gameArray[1][1] &&
         _gameArray[1][1] === _gameArray[0][2])
     ) {
-      _currentState.win = true;
       return true;
     }
 
@@ -74,7 +71,6 @@ const gameBoard = (() => {
         // Check next two tokens underneath to see if they match
         if (_gameArray[i][1] === token) {
           if (_gameArray[i][2] === token) {
-            _currentState.win = true;
             return true;
           }
         }
@@ -89,7 +85,6 @@ const gameBoard = (() => {
         // Check next two adjacent tokens to see if match
         if (_gameArray[1][i] === token) {
           if (_gameArray[2][i] === token) {
-            _currentState.win = true;
             return true;
           }
         }
@@ -97,23 +92,6 @@ const gameBoard = (() => {
     }
     // If no winner....
     return false;
-  };
-
-  const _updateState = (state) => {
-    if (state === "Tie") {
-      _currentState.tie == true;
-    }
-  };
-
-  // Public properties and methods
-  const getGameState = () => {
-    if (_currentState.tie) {
-      return "tie";
-    }
-
-    if (_currentState.winningToken) {
-      return _currentState.winningToken;
-    }
   };
 
   const returnCurrentState = () => {
@@ -134,32 +112,16 @@ const gameBoard = (() => {
     // Check for tie, check for space and then insert
     if (_isFreeSpace(_gameArray[col][row])) {
       _gameArray[col][row] = token;
-      _setLastMarkedCell(cell);
       return true;
     }
     return false;
   };
 
-  const getLastMarkedCell = () => {
-    return _currentState.lastMarkedCell;
-  };
-
-  const printBoard = () => {
-    for (let i = 0; i < _gameArray.length; i++) {
-      for (let j = 0; j < _gameArray.length; j++) {
-        process.stdout.write(_gameArray[j][i]);
-      }
-      console.log();
-    }
-  };
-
   return {
     insert,
     clearArray,
-    getGameState,
     checkForWinner,
-    getLastMarkedCell,
-    returnCurrentState,
+    checkForTie,
   };
 })();
 
@@ -170,26 +132,48 @@ const makePlayer = (name, token, playerNum) => {
 
 // Draws stuff to screen
 const displayController = (() => {
-  const drawMark = (clickedCell) => {
-    const clickedCellPos = `"${clickedCell.col},${clickedCell.row}"`;
-    const playerToken = clickedCell.token;
+  const gridUI = document.querySelector(".game-grid");
 
-    alert(clickedCellPos);
+  const messageBoard = document.querySelector(".message-board");
 
-    document.querySelector("[data-pos=" + clickedCellPos + "]").textContent =
+  const drawMark = (cell) => {
+    const tokenPos = `"${cell.col},${cell.row}"`;
+    const playerToken = cell.token;
+    document.querySelector("[data-pos=" + tokenPos + "]").textContent =
       playerToken;
   };
+
   const print = (mesg) => {
-    // print message to screen
+    messageBoard.classList.add("fade-in");
+    messageBoard.textContent = mesg;
   };
+  const clearPrint = () => {
+    messageBoard.classList.remove("fade-in");
+  };
+
+  const clearBoard = () => {
+    gridUI.classList.add("fade-out");
+  };
+
   return {
     drawMark,
     print,
+    clearPrint,
+    clearBoard,
   };
 })();
 
 const gameController = (() => {
-  // Start gameController()
+  const gameControllerState = {
+    currentPlayer: "",
+    playAgain: false,
+    stillPlaying: true,
+
+    lastMarkedCell: "",
+    win: false,
+    tie: false,
+  }; // Start gameController()
+
   const _getColRowPos = (gridNode) => {
     const col = gridNode.getAttribute("data-pos").split(",")[0];
     const row = gridNode.getAttribute("data-pos").split(",")[1];
@@ -210,24 +194,38 @@ const gameController = (() => {
     return cell;
   };
 
-  const gameControllerState = {
-    currentPlayer: "",
-    playAgain: false,
-    stillPlaying: true,
+  const Main = (clickedGridEl) => {
+    const cell = makeCellObj(clickedGridEl);
+
+    // returns an obj with col, row, player and token used
+    // attempt to insert token into the array
+    // if its successful, update game state, then display on screen
+    if (gameBoard.insert(cell)) {
+      displayController.drawMark(cell);
+      gameControllerState.lastMarkedCell = cell;
+
+      if (gameBoard.checkForWinner()) {
+        const winnerName = gameControllerState.lastMarkedCell.player.name;
+        gameControllerState.win = true;
+        gameControllerState.winner = winnerName;
+
+        displayController.print(winnerName + " Wins");
+        displayController.clearBoard();
+
+        gameBoard.clearArray();
+      } else if (gameBoard.checkForTie()) {
+        gameControllerState.tie = true;
+        displayController.print("Cat's Game");
+      } else {
+        _switchTurns();
+      }
+    }
   };
 
   const turnOnGridEvents = () => {
-    document.querySelectorAll(".grid-cell").forEach((gridEl) => {
-      gridEl.addEventListener("click", function mainGameLoop() {
-        const clickedCell = makeCellObj(gridEl);
-        if (gameBoard.insert(clickedCell)) {
-          displayController.drawMark(gameBoard.getLastMarkedCell());
-          if (gameBoard.checkForWinner()) {
-            alert("winner" + clickedCell.player.name);
-          } else {
-            _switchTurns();
-          }
-        }
+    document.querySelectorAll(".grid-cell").forEach((clickedGridEl) => {
+      clickedGridEl.addEventListener("click", () => {
+        Main(clickedGridEl);
       });
     });
   };
@@ -238,10 +236,7 @@ const gameController = (() => {
     } else {
       gameControllerState.currentPlayer = player1;
     }
-  };
-
-  const currentPlayer = () => {
-    return gameControllerState.currentPlayer;
+    displayController.print(gameControllerState.currentPlayer.name);
   };
 
   const _setCurPlayer = (player) => {
@@ -250,8 +245,9 @@ const gameController = (() => {
 
   const startGame = (player1, player2) => {
     gameBoard.clearArray();
-    turnOnGridEvents();
     _setCurPlayer(player1);
+    displayController.print(gameControllerState.currentPlayer.name);
+    turnOnGridEvents();
   };
 
   const endGame = () => {
@@ -273,8 +269,8 @@ const gameController = (() => {
 
 // MAIN
 
-const player1 = makePlayer("James", "X", 1);
-const player2 = makePlayer("Orin", "O", 2);
+const player1 = makePlayer("James", ":)", 1);
+const player2 = makePlayer("Orin", ":(", 2);
 // Start game
 
 gameController.startGame(player1, player2);
