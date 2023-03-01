@@ -6,17 +6,6 @@ const gameBoard = (() => {
   // Returns true if space remains
   const freeSpaceMarker = "*";
 
-  const _currentState = {
-    win: false,
-    tie: false,
-    lastMarkedCell: "",
-    /*col: pos.col,
-      row: pos.row,
-      player: state.currentPlayer,
-      playerToken: state.currentPlayer.token,
-      */
-  };
-
   const _isFreeSpace = (arr) => {
     if (arr === freeSpaceMarker) {
       return true;
@@ -94,10 +83,6 @@ const gameBoard = (() => {
     return false;
   };
 
-  const returnCurrentState = () => {
-    return _currentState;
-  };
-
   const clearArray = () => {
     _intializeArray();
   };
@@ -132,9 +117,44 @@ const makePlayer = (name, token, playerNum) => {
 
 // Draws stuff to screen
 const displayController = (() => {
-  const gridUI = document.querySelector(".game-grid");
+  const elements = {
+    playAgain: document.querySelector(".play-again-display"),
+    playerNamePrompt: document.querySelector(".player-name-form"),
+    gameGrid: document.querySelector(".game-grid"),
+    messageBoard: document.querySelector(".message-board"),
+    playerNameForm: document.getElementById("form"),
+  };
 
-  const messageBoard = document.querySelector(".message-board");
+  const hide = (hideEl) => {
+    if (hideEl === "all") {
+      for (const el in elements) {
+        elements[el].style.display = "none";
+      }
+    } else {
+      hideEl.style.display = "none";
+    }
+  };
+
+  const show = (showEl) => {
+    showEl.style.display = "initial";
+  };
+
+  const getNames = (form) => {
+      elements.playerNameForm.addEventListener('submit', ()=> {
+    let i = 0;
+          let players = '';
+    const formData = new FormData(form);
+    for (const [key, value] of formData) {
+      players[key] = value; 
+
+    }
+
+        alert(players);
+
+    return players;
+
+      })
+  };
 
   const drawMark = (cell) => {
     const tokenPos = `"${cell.col},${cell.row}"`;
@@ -144,18 +164,23 @@ const displayController = (() => {
   };
 
   const print = (mesg) => {
-    messageBoard.classList.add("fade-in");
-    messageBoard.textContent = mesg;
+    elements.messageBoard.classList.add("fade-in");
+    elements.messageBoard.textContent = mesg;
   };
+
   const clearPrint = () => {
-    messageBoard.classList.remove("fade-in");
+    elements.messageBoard.classList.remove("fade-in");
   };
 
   const clearBoard = () => {
-    gridUI.classList.add("fade-out");
+    elements.gameGrid.classList.add("fade-out");
   };
 
   return {
+    hide,
+    show,
+    getNames,
+    elements,
     drawMark,
     print,
     clearPrint,
@@ -243,9 +268,20 @@ const gameController = (() => {
     gameControllerState.currentPlayer = player;
   };
 
+  const getPlayerNames = () => {
+    displayController.hide("all");
+    displayController.hide(displayController.elements.gameGrid);
+    displayController.show(displayController.elements.playerNamePrompt);
+
+    const playerNames = displayController.getNames(
+      displayController.elements.playerNameForm);
+    
+  };
+
   const startGame = (player1, player2) => {
     gameBoard.clearArray();
-    _setCurPlayer(player1);
+    getPlayerNames();
+    _setCurPlayer(player1); // no need for private here
     displayController.print(gameControllerState.currentPlayer.name);
     turnOnGridEvents();
   };

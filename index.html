@@ -13,7 +13,19 @@
       <div class="logo-container">
         <p class="logo-text">TIC TAC TOE.</p>
       </div>
+      <div class="form-container fade-in">
+        <form action="#" id="form" class="player-name-form" name="player-name">
+          <div class="input-field">
+            <label for="fname">player 1 enter your name:</label>
+            <input type="text" name="fname" />
+          </div>
+        </form>
+      </div>
       <div class="content-container">
+        <div class="play-again-display fade-in">
+          <p class="restart-quit-text">Quit</p>
+          <p class="restart-play">Play Again</p>
+        </div>
         <div class="game-grid fade-in">
           <div class="grid-cell token" data-pos="0,0"></div>
           <div class="grid-cell token" data-pos="1,0"></div>
@@ -27,9 +39,9 @@
           <div class="grid-cell token" data-pos="1,2"></div>
           <div class="grid-cell token" data-pos="2,2"></div>
         </div>
-        <div class="game-display">
-          <p class="message-board"></p>
-        </div>
+      </div>
+      <div class="game-display fade-in">
+        <p class="message-board">James</p>
       </div>
     </div>
   </body>
