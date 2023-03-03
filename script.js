@@ -1,6 +1,5 @@
 // Gameboard draws itself and keeps track of where 'X' and 'O' tokens are placed.
 
-const PromptSync = require("prompt-sync");
 
 
 // It also stores state if there is a winner or tie.
@@ -270,7 +269,6 @@ const gameController = (() => {
     displayController.hide("all");
     displayController.hide(displayController.elements.gameGrid);
     displayController.show(displayController.elements.playerNamePrompt);  
-
 
 
   };
