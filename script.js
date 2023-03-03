@@ -1,4 +1,8 @@
 // Gameboard draws itself and keeps track of where 'X' and 'O' tokens are placed.
+
+const PromptSync = require("prompt-sync");
+
+
 // It also stores state if there is a winner or tie.
 const gameBoard = (() => {
   // Private properties and methods
@@ -139,21 +143,15 @@ const displayController = (() => {
     showEl.style.display = "initial";
   };
 
-  const getNames = (form) => {
-      elements.playerNameForm.addEventListener('submit', ()=> {
-    let i = 0;
-          let players = '';
-    const formData = new FormData(form);
-    for (const [key, value] of formData) {
-      players[key] = value; 
-
-    }
-
-        alert(players);
-
-    return players;
-
-      })
+  const getFormData = () => {
+    const playerData = {};
+    elements.playerNameForm.addEventListener("submit", () => {
+      const formData = new FormData(form);
+      for (const [key, value] of formData) {
+        playerData[key] = value;
+      }
+    });
+    return playerData 
   };
 
   const drawMark = (cell) => {
@@ -179,7 +177,7 @@ const displayController = (() => {
   return {
     hide,
     show,
-    getNames,
+    getFormData,
     elements,
     drawMark,
     print,
@@ -268,19 +266,18 @@ const gameController = (() => {
     gameControllerState.currentPlayer = player;
   };
 
-  const getPlayerNames = () => {
+  const getPlayers = () => {
     displayController.hide("all");
     displayController.hide(displayController.elements.gameGrid);
-    displayController.show(displayController.elements.playerNamePrompt);
+    displayController.show(displayController.elements.playerNamePrompt);  
 
-    const playerNames = displayController.getNames(
-      displayController.elements.playerNameForm);
-    
+
+
   };
 
   const startGame = (player1, player2) => {
     gameBoard.clearArray();
-    getPlayerNames();
+    getPlayers();
     _setCurPlayer(player1); // no need for private here
     displayController.print(gameControllerState.currentPlayer.name);
     turnOnGridEvents();
