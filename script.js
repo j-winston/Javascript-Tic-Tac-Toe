@@ -1,7 +1,5 @@
 // Gameboard draws itself and keeps track of where 'X' and 'O' tokens are placed.
 
-
-
 // It also stores state if there is a winner or tie.
 const gameBoard = (() => {
   // Private properties and methods
@@ -142,15 +140,15 @@ const displayController = (() => {
     showEl.style.display = "initial";
   };
 
-  const getFormData = () => {
-    const playerData = {};
+  const getFormData = (callback) => {
+    const players = {};
     elements.playerNameForm.addEventListener("submit", () => {
       const formData = new FormData(form);
       for (const [key, value] of formData) {
-        playerData[key] = value;
+        players[key] = value;
       }
+      callback(players);
     });
-    return playerData 
   };
 
   const drawMark = (cell) => {
@@ -266,17 +264,22 @@ const gameController = (() => {
   };
 
   const getPlayers = () => {
+    const playerObj = {};
+
     displayController.hide("all");
     displayController.hide(displayController.elements.gameGrid);
-    displayController.show(displayController.elements.playerNamePrompt);  
+    displayController.show(displayController.elements.playerNamePrompt);
 
-
+    const callback = (playerData) => {
+      playerObj = makePlayer(playerData.fname, ":)", 1);
+    };
   };
 
   const startGame = (player1, player2) => {
     gameBoard.clearArray();
-    getPlayers();
-    _setCurPlayer(player1); // no need for private here
+    const player = getPlayers();
+    _setCurPlayer(player); // no need for private here
+
     displayController.print(gameControllerState.currentPlayer.name);
     turnOnGridEvents();
   };
