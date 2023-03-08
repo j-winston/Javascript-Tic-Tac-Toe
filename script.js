@@ -113,6 +113,8 @@ const gameBoard = (() => {
 
 // Player factory
 const makePlayer = (name, token, playerNum) => {
+
+
   return { name, token, playerNum };
 };
 
@@ -120,7 +122,7 @@ const makePlayer = (name, token, playerNum) => {
 const displayController = (() => {
   const elements = {
     playAgain: document.querySelector(".play-again-display"),
-    playerNamePrompt: document.querySelector(".player-name-form"),
+    playerNamePrompt: document.querySelector('.player-name-form'),
     gameGrid: document.querySelector(".game-grid"),
     messageBoard: document.querySelector(".message-board"),
     playerNameForm: document.getElementById("form"),
@@ -137,18 +139,21 @@ const displayController = (() => {
   };
 
   const show = (showEl) => {
-    showEl.style.display = "initial";
+      showEl.style.display = 'initial';
   };
 
-  const getFormData = (callback) => {
-    const players = {};
+  const getFormData = (callBack)=> {
+      
+    let playerName; 
+
     elements.playerNameForm.addEventListener("submit", () => {
       const formData = new FormData(form);
       for (const [key, value] of formData) {
-        players[key] = value;
-      }
-      callback(players);
+          playerName = value;
+          }
+        callBack(playerName);
     });
+
   };
 
   const drawMark = (cell) => {
@@ -158,9 +163,9 @@ const displayController = (() => {
       playerToken;
   };
 
-  const print = (mesg) => {
-    elements.messageBoard.classList.add("fade-in");
-    elements.messageBoard.textContent = mesg;
+  const print = (el, mesg) => {
+      // You need to get a hold of the label element here! Change the text 
+      // there.
   };
 
   const clearPrint = () => {
@@ -181,6 +186,28 @@ const displayController = (() => {
     clearPrint,
     clearBoard,
   };
+})();
+
+const playerController = (() => {
+
+    const allPlayers = [];
+    const getPlayers = ()=> {
+        return  allPlayers;
+
+    };
+
+    const addPlayer = (playerName) => {
+        const tokens = ['X', 'O']
+        const player = {};
+
+        player.name = playerName;
+        player.token = tokens[allPlayers.length];
+        player.number = allPlayers.length; 
+
+        allPlayers.push(player); 
+        return player;
+    };
+
 })();
 
 const gameController = (() => {
@@ -263,30 +290,30 @@ const gameController = (() => {
     gameControllerState.currentPlayer = player;
   };
 
-  const getPlayers = () => {
-    const playerObj = {};
-
-    displayController.hide("all");
-    displayController.hide(displayController.elements.gameGrid);
-    displayController.show(displayController.elements.playerNamePrompt);
-
-    const callback = (playerData) => {
-      playerObj = makePlayer(playerData.fname, ":)", 1);
-    };
+  const getName = () => {
+    const callBack = (playerName)=> {
+    }
+    displayController.getFormData(callBack);
   };
 
-  const startGame = (player1, player2) => {
-    gameBoard.clearArray();
-    const player = getPlayers();
-    _setCurPlayer(player); // no need for private here
 
-    displayController.print(gameControllerState.currentPlayer.name);
+  const startGame = (numPlayers) =>  { 
+      // Clear the contents of the array before we start 
+    gameBoard.clearArray();
+
+      for(let i=0; i<numPlayers; i++){
+      displayController.print(displayController.elements.playerNamePrompt, 'player ' +numPlayers +' enter your name:')
+      getName();
+      }
+
     turnOnGridEvents();
   };
 
+    
   const endGame = () => {
-    state.stillPlaying = false;
+  state.stillPlaying = false;
   };
+
 
   const stillPlaying = () => {
     if (state.stillPlaying) {
@@ -299,12 +326,11 @@ const gameController = (() => {
     startGame,
     stillPlaying,
   };
-})(gameBoard, displayController); //End gameController()
+})( playerController, gameBoard, displayController); //End gameController()
 
 // MAIN
 
-const player1 = makePlayer("James", ":)", 1);
-const player2 = makePlayer("Orin", ":(", 2);
+
 // Start game
 
-gameController.startGame(player1, player2);
+gameController.startGame(2);
