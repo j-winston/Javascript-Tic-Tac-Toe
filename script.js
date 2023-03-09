@@ -111,18 +111,11 @@ const gameBoard = (() => {
   };
 })();
 
-// Player factory
-const makePlayer = (name, token, playerNum) => {
-
-
-  return { name, token, playerNum };
-};
-
 // Draws stuff to screen
 const displayController = (() => {
   const elements = {
     playAgain: document.querySelector(".play-again-display"),
-    playerNamePrompt: document.querySelector('.player-name-form'),
+    playerNamePrompt: document.querySelector("[for=fname]"),
     gameGrid: document.querySelector(".game-grid"),
     messageBoard: document.querySelector(".message-board"),
     playerNameForm: document.getElementById("form"),
@@ -139,23 +132,25 @@ const displayController = (() => {
   };
 
   const show = (showEl) => {
-      showEl.style.display = 'initial';
+    showEl.style.display = "";
   };
 
-  const getFormData = (callBack)=> {
-      
-    let playerName; 
+  const getFormData = (callBack) => {
+    let playerName;
 
     elements.playerNameForm.addEventListener("submit", () => {
       const formData = new FormData(form);
       for (const [key, value] of formData) {
-          playerName = value;
-          }
-        callBack(playerName);
+        playerName = value;
+      }
+      _resetForm();
+      callBack(playerName);
     });
-
   };
 
+  const _resetForm = () => {
+    document.getElementById("form").reset();
+  };
   const drawMark = (cell) => {
     const tokenPos = `"${cell.col},${cell.row}"`;
     const playerToken = cell.token;
@@ -164,8 +159,9 @@ const displayController = (() => {
   };
 
   const print = (el, mesg) => {
-      // You need to get a hold of the label element here! Change the text 
-      // there.
+    // show element
+    // Print message to screen
+    el.textContent = mesg;
   };
 
   const clearPrint = () => {
@@ -189,30 +185,33 @@ const displayController = (() => {
 })();
 
 const playerController = (() => {
+  const allPlayers = [];
+  const getPlayers = () => {
+    return allPlayers;
+  };
 
-    const allPlayers = [];
-    const getPlayers = ()=> {
-        return  allPlayers;
+  const addPlayer = (playerName) => {
+    const tokens = ["X", "O"];
+    const player = {};
+    player.name = playerName;
+    player.token = tokens[allPlayers.length];
+    player.number = allPlayers.length + 1;
 
-    };
+    allPlayers.push(player);
+    return player;
+  };
 
-    const addPlayer = (playerName) => {
-        const tokens = ['X', 'O']
-        const player = {};
-
-        player.name = playerName;
-        player.token = tokens[allPlayers.length];
-        player.number = allPlayers.length; 
-
-        allPlayers.push(player); 
-        return player;
-    };
-
+  return {
+    addPlayer,
+    getPlayers,
+  };
 })();
 
 const gameController = (() => {
   const gameControllerState = {
     currentPlayer: "",
+    playerOne: "",
+    playerTwo: "",
     playAgain: false,
     stillPlaying: true,
 
@@ -228,7 +227,7 @@ const gameController = (() => {
     return { col, row };
   };
 
-  const makeCellObj = (clickedCell) => {
+  const _makeCellObj = (clickedCell) => {
     const pos = _getColRowPos(clickedCell);
     const player = gameControllerState.currentPlayer;
 
@@ -241,9 +240,20 @@ const gameController = (() => {
     return cell;
   };
 
-  const Main = (clickedGridEl) => {
-    const cell = makeCellObj(clickedGridEl);
+  const _switchTurns = () => {
+    if (gameControllerState.currentPlayer.number === 1) {
+      gameControllerState.currentPlayer = gameControllerState.playerTwo;
+    } else {
+      gameControllerState.currentPlayer = gameControllerState.playerOne;
+    }
 
+    displayController.print(
+      displayController.elements.messageBoard,
+      gameControllerState.currentPlayer.name + "'s turn"
+    );
+  };
+  const _main = (clickedGridEl) => {
+    const cell = _makeCellObj(clickedGridEl);
     // returns an obj with col, row, player and token used
     // attempt to insert token into the array
     // if its successful, update game state, then display on screen
@@ -255,8 +265,10 @@ const gameController = (() => {
         const winnerName = gameControllerState.lastMarkedCell.player.name;
         gameControllerState.win = true;
         gameControllerState.winner = winnerName;
+        // start with printing winner name here on screen
 
         displayController.print(winnerName + " Wins");
+        // end game and restart
         displayController.clearBoard();
 
         gameBoard.clearArray();
@@ -272,48 +284,57 @@ const gameController = (() => {
   const turnOnGridEvents = () => {
     document.querySelectorAll(".grid-cell").forEach((clickedGridEl) => {
       clickedGridEl.addEventListener("click", () => {
-        Main(clickedGridEl);
+        _main(clickedGridEl);
       });
     });
   };
 
-  const _switchTurns = () => {
-    if (gameControllerState.currentPlayer === player1) {
-      gameControllerState.currentPlayer = player2;
-    } else {
-      gameControllerState.currentPlayer = player1;
-    }
-    displayController.print(gameControllerState.currentPlayer.name);
-  };
+  const getNames = () => {
+    let nameEntries = 2;
 
-  const _setCurPlayer = (player) => {
-    gameControllerState.currentPlayer = player;
-  };
+    const callBack = (playerName) => {
+      playerController.addPlayer(playerName);
 
-  const getName = () => {
-    const callBack = (playerName)=> {
-    }
+      displayController.print(
+        displayController.elements.playerNamePrompt,
+        "Player 2 enter your name: "
+      );
+
+      displayController.getFormData(callBack);
+      nameEntries--;
+
+      // Once names are entered, set 1 and 2 player, show grid
+      if (nameEntries === 0) {
+        const players = playerController.getPlayers();
+        gameControllerState.playerOne = players[0];
+        gameControllerState.playerTwo = players[1];
+
+        gameControllerState.currentPlayer = players[0];
+
+        displayController.hide(displayController.elements.playerNameForm);
+        displayController.hide(displayController.elements.playerNamePrompt);
+
+        displayController.show(displayController.elements.gameGrid);
+        displayController.show(displayController.elements.messageBoard);
+        displayController.print(
+          displayController.elements.messageBoard,
+          gameControllerState.currentPlayer.name + "'s turn"
+        );
+      }
+    }; // End callback
+
+    displayController.show(displayController.elements.playerNamePrompt);
+    displayController.show(displayController.elements.playerNameForm);
+    displayController.print(
+      displayController.elements.playerNamePrompt,
+      "Player 1 " + " enter your name:"
+    );
     displayController.getFormData(callBack);
   };
 
-
-  const startGame = (numPlayers) =>  { 
-      // Clear the contents of the array before we start 
-    gameBoard.clearArray();
-
-      for(let i=0; i<numPlayers; i++){
-      displayController.print(displayController.elements.playerNamePrompt, 'player ' +numPlayers +' enter your name:')
-      getName();
-      }
-
-    turnOnGridEvents();
-  };
-
-    
   const endGame = () => {
-  state.stillPlaying = false;
+    state.stillPlaying = false;
   };
-
 
   const stillPlaying = () => {
     if (state.stillPlaying) {
@@ -323,14 +344,13 @@ const gameController = (() => {
   };
 
   return {
-    startGame,
-    stillPlaying,
+    getNames,
+    turnOnGridEvents,
   };
-})( playerController, gameBoard, displayController); //End gameController()
+})(playerController, gameBoard, displayController); //End gameController()
 
 // MAIN
-
-
-// Start game
-
-gameController.startGame(2);
+gameBoard.clearArray();
+displayController.hide("all");
+gameController.getNames();
+gameController.turnOnGridEvents();
