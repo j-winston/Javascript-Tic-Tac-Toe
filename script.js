@@ -17,6 +17,7 @@ const gameBoard = (() => {
   // Create a 3x3 array to store values.
   // Later we will write this to UI
   const _intializeArray = () => {
+    
     for (let i = 0; i < _gameArray.length; i++) {
       _gameArray[i] = Array(3);
     }
@@ -113,12 +114,15 @@ const gameBoard = (() => {
 
 // Draws stuff to screen
 const displayController = (() => {
+  document.querySelectorAll("token").forEach((token) => {});
   const elements = {
     playAgain: document.querySelector(".play-again-display"),
     playerNamePrompt: document.querySelector("[for=fname]"),
     gameGrid: document.querySelector(".game-grid"),
     messageBoard: document.querySelector(".message-board"),
     playerNameForm: document.getElementById("form"),
+    playMoreLink: document.querySelector(".play-link"),
+    quitLink: document.querySelector(".restart-link"),
   };
 
   const hide = (hideEl) => {
@@ -151,11 +155,16 @@ const displayController = (() => {
   const _resetForm = () => {
     document.getElementById("form").reset();
   };
+
   const drawMark = (cell) => {
     const tokenPos = `"${cell.col},${cell.row}"`;
-    const playerToken = cell.token;
-    document.querySelector("[data-pos=" + tokenPos + "]").textContent =
-      playerToken;
+    const tokenSymbol = cell.token;
+    const gridSquareEL = document.querySelector("[data-pos=" + tokenPos + "]");
+    const tokenTextEl = document.createElement("p");
+    tokenTextEl.textContent = tokenSymbol;
+
+    tokenTextEl.classList.add("fade-in");
+    gridSquareEL.appendChild(tokenTextEl);
   };
 
   const print = (el, mesg) => {
@@ -170,8 +179,15 @@ const displayController = (() => {
 
   const clearBoard = () => {
     elements.gameGrid.classList.add("fade-out");
+    document.querySelectorAll(".grid-cell").forEach((cell) => {
+      cell.textContent = "";
+    });
   };
 
+  const fadeOut = (el) => {
+    el.classList.add("fade-out");
+    el.style.display = "none";
+  };
   return {
     hide,
     show,
@@ -181,6 +197,7 @@ const displayController = (() => {
     print,
     clearPrint,
     clearBoard,
+    fadeOut,
   };
 })();
 
@@ -252,6 +269,7 @@ const gameController = (() => {
       gameControllerState.currentPlayer.name + "'s turn"
     );
   };
+  // Main event processor
   const _main = (clickedGridEl) => {
     const cell = _makeCellObj(clickedGridEl);
     // returns an obj with col, row, player and token used
@@ -265,16 +283,38 @@ const gameController = (() => {
         const winnerName = gameControllerState.lastMarkedCell.player.name;
         gameControllerState.win = true;
         gameControllerState.winner = winnerName;
-        // start with printing winner name here on screen
 
-        displayController.print(winnerName + " Wins");
-        // end game and restart
-        displayController.clearBoard();
+        // Display winner to screen
+        displayController.show(displayController.elements.messageBoard);
+        displayController.print(
+          displayController.elements.messageBoard,
+          winnerName + " wins!"
+        );
 
-        gameBoard.clearArray();
+        // Show 'play or quit' prompt again after 3 seconds
+        setTimeout(() => {
+          displayController.clearBoard();
+          displayController.show(displayController.elements.playAgain);
+          displayController.show(displayController.elements.quitLink);
+          displayController.show(displayController.elements.playMoreLink);
+
+          document
+            .querySelector(".restart-link")
+            .addEventListener("click", () => {});
+
+          document.querySelector(".play-link").addEventListener("click", () => {
+            displayController.fadeOut(displayController.elements.playAgain);
+            displayController.hide("all");
+            gameBoard.clearArray();
+            getNames();
+          });
+        }, 1000);
       } else if (gameBoard.checkForTie()) {
         gameControllerState.tie = true;
-        displayController.print("Cat's Game");
+        displayController.print(
+          displayController.elements.messageBoard,
+          "Cat's Game"
+        );
       } else {
         _switchTurns();
       }
@@ -303,7 +343,8 @@ const gameController = (() => {
       displayController.getFormData(callBack);
       nameEntries--;
 
-      // Once names are entered, set 1 and 2 player, show grid
+      // Once names are entered, and both players, and display grid
+      // add separate functions here later
       if (nameEntries === 0) {
         const players = playerController.getPlayers();
         gameControllerState.playerOne = players[0];

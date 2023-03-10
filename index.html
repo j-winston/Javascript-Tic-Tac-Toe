@@ -16,15 +16,21 @@
       <div class="form-container fade-in">
         <form action="#" id="form" class="player-name-form" name="player-name">
           <div class="input-field">
-            <label for="fname"></label>
+            <label for="fname" class="fade-in"></label>
             <input type="text" name="fname" />
           </div>
         </form>
       </div>
       <div class="content-container">
+        <div class="game-display fade-in">
+          <p class="message-board"></p>
+        </div>
+        <div class="game-display fade-in">
+          <p class="message-board"></p>
+        </div>
         <div class="play-again-display fade-in">
-          <p class="restart-quit-text">Quit</p>
-          <p class="restart-play">Play Again</p>
+          <p class="restart-link fade-in">Quit</p>
+          <p class="play-link fade-in">Restart</p>
         </div>
         <div class="game-grid fade-in">
           <div class="grid-cell token" data-pos="0,0"></div>
@@ -39,9 +45,6 @@
           <div class="grid-cell token" data-pos="1,2"></div>
           <div class="grid-cell token" data-pos="2,2"></div>
         </div>
-      </div>
-      <div class="game-display fade-in">
-        <p class="message-board"></p>
       </div>
     </div>
   </body>
