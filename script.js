@@ -17,7 +17,6 @@ const gameBoard = (() => {
   // Create a 3x3 array to store values.
   // Later we will write this to UI
   const _intializeArray = () => {
-    
     for (let i = 0; i < _gameArray.length; i++) {
       _gameArray[i] = Array(3);
     }
@@ -235,6 +234,13 @@ const gameController = (() => {
     lastMarkedCell: "",
     win: false,
     tie: false,
+    };
+
+    const resetGameState = () => {
+      gameControllerState.currentPlayer = "";
+      gameControllerState.playerOne = "";
+      gameControllerState.playerTwo = "";
+      gameControllerState.lastMarkedCell = "";
   }; // Start gameController()
 
   const _getColRowPos = (gridNode) => {
@@ -301,11 +307,12 @@ const gameController = (() => {
           document
             .querySelector(".restart-link")
             .addEventListener("click", () => {});
-
+            // If user presses play again restart the game
           document.querySelector(".play-link").addEventListener("click", () => {
             displayController.fadeOut(displayController.elements.playAgain);
             displayController.hide("all");
             gameBoard.clearArray();
+            resetGameState();
             getNames();
           });
         }, 1000);
@@ -357,6 +364,7 @@ const gameController = (() => {
 
         displayController.show(displayController.elements.gameGrid);
         displayController.show(displayController.elements.messageBoard);
+          alert(gameControllerState.currentPlayer.name)
         displayController.print(
           displayController.elements.messageBoard,
           gameControllerState.currentPlayer.name + "'s turn"
