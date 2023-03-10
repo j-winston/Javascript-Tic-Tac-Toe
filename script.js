@@ -364,7 +364,6 @@ const gameController = (() => {
 
         displayController.show(displayController.elements.gameGrid);
         displayController.show(displayController.elements.messageBoard);
-          alert(gameControllerState.currentPlayer.name)
         displayController.print(
           displayController.elements.messageBoard,
           gameControllerState.currentPlayer.name + "'s turn"
