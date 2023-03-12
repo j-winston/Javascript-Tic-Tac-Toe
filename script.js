@@ -350,8 +350,8 @@ const gameController = (() => {
             gameBoard.clearArray();
             displayController.clearMessageBoard();
             playerController.resetPlayers();
-            getNames();
-            turnOnGridEvents();
+
+              displayController.showNamePrompt('Player 1, enter your name:')
           });
           // If user presses play again restart the game
           document
