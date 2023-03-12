@@ -1,3 +1,5 @@
+// Look at why the variables are holding their value
+// :
 // Gameboard draws itself and keeps track of where 'X' and 'O' tokens are placed.
 
 // It also stores state if there is a winner or tie.
@@ -112,18 +114,21 @@ const gameBoard = (() => {
 })();
 
 // Draws stuff to screen
+
 const displayController = (() => {
-  document.querySelectorAll("token").forEach((token) => {});
   const elements = {
-    playAgain: document.querySelector(".play-again-display"),
+    playAgainDisplay: document.querySelector(".play-again-display"),
     playerNamePrompt: document.querySelector("[for=fname]"),
     gameGrid: document.querySelector(".game-grid"),
     messageBoard: document.querySelector(".message-board"),
     playerNameForm: document.getElementById("form"),
-    playMoreLink: document.querySelector(".play-link"),
-    quitLink: document.querySelector(".restart-link"),
+    restartGameLink: document.querySelector(".restart-link"),
+    quitLink: document.querySelector(".quit-link"),
   };
 
+  const clearMessageBoard = () => {
+    elements.messageBoard.textContent = "";
+  };
   const hide = (hideEl) => {
     if (hideEl === "all") {
       for (const el in elements) {
@@ -176,8 +181,7 @@ const displayController = (() => {
     elements.messageBoard.classList.remove("fade-in");
   };
 
-  const clearBoard = () => {
-    elements.gameGrid.classList.add("fade-out");
+  const clearGameBoard = () => {
     document.querySelectorAll(".grid-cell").forEach((cell) => {
       cell.textContent = "";
     });
@@ -195,8 +199,9 @@ const displayController = (() => {
     drawMark,
     print,
     clearPrint,
-    clearBoard,
+    clearGameBoard,
     fadeOut,
+    clearMessageBoard,
   };
 })();
 
@@ -217,9 +222,14 @@ const playerController = (() => {
     return player;
   };
 
+  const resetPlayers = () => {
+    allPlayers.length = 0;
+  };
+
   return {
     addPlayer,
     getPlayers,
+    resetPlayers,
   };
 })();
 
@@ -234,14 +244,7 @@ const gameController = (() => {
     lastMarkedCell: "",
     win: false,
     tie: false,
-    };
-
-    const resetGameState = () => {
-      gameControllerState.currentPlayer = "";
-      gameControllerState.playerOne = "";
-      gameControllerState.playerTwo = "";
-      gameControllerState.lastMarkedCell = "";
-  }; // Start gameController()
+  };
 
   const _getColRowPos = (gridNode) => {
     const col = gridNode.getAttribute("data-pos").split(",")[0];
@@ -299,22 +302,35 @@ const gameController = (() => {
 
         // Show 'play or quit' prompt again after 3 seconds
         setTimeout(() => {
-          displayController.clearBoard();
-          displayController.show(displayController.elements.playAgain);
+          displayController.hide(displayController.elements.gameGrid);
+          displayController.show(displayController.elements.playAgainDisplay);
           displayController.show(displayController.elements.quitLink);
-          displayController.show(displayController.elements.playMoreLink);
+          displayController.show(displayController.elements.restartGameLink);
 
+          document.querySelector(".quit-link").addEventListener("click", () => {
+            displayController.hide("all");
+            displayController.clearGameBoard();
+            gameBoard.clearArray();
+            displayController.clearMessageBoard();
+            playerController.resetPlayers();
+            getNames();
+            turnOnGridEvents();
+          });
+          // If user presses play again restart the game
           document
             .querySelector(".restart-link")
-            .addEventListener("click", () => {});
-            // If user presses play again restart the game
-          document.querySelector(".play-link").addEventListener("click", () => {
-            displayController.fadeOut(displayController.elements.playAgain);
-            displayController.hide("all");
-            gameBoard.clearArray();
-            resetGameState();
-            getNames();
-          });
+            .addEventListener("click", () => {
+              displayController.hide("all");
+              displayController.clearGameBoard();
+              gameBoard.clearArray();
+              displayController.show(displayController.elements.gameGrid);
+              displayController.clearMessageBoard();
+              displayController.show(displayController.elements.messageBoard);
+              displayController.print(
+                displayController.elements.messageBoard,
+                gameControllerState.currentPlayer.name + " 's turn"
+              );
+            });
         }, 1000);
       } else if (gameBoard.checkForTie()) {
         gameControllerState.tie = true;
@@ -337,23 +353,20 @@ const gameController = (() => {
   };
 
   const getNames = () => {
-    let nameEntries = 2;
 
     const callBack = (playerName) => {
-      playerController.addPlayer(playerName);
-
       displayController.print(
         displayController.elements.playerNamePrompt,
         "Player 2 enter your name: "
       );
-
-      displayController.getFormData(callBack);
-      nameEntries--;
+      const newPlayer = playerController.addPlayer(playerName);
+      const playerNum = newPlayer.number;
 
       // Once names are entered, and both players, and display grid
       // add separate functions here later
-      if (nameEntries === 0) {
+      if (playerNum === 2) {
         const players = playerController.getPlayers();
+
         gameControllerState.playerOne = players[0];
         gameControllerState.playerTwo = players[1];
 
@@ -369,7 +382,7 @@ const gameController = (() => {
           gameControllerState.currentPlayer.name + "'s turn"
         );
       }
-    }; // End callback
+    };
 
     displayController.show(displayController.elements.playerNamePrompt);
     displayController.show(displayController.elements.playerNameForm);

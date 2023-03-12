@@ -144,14 +144,14 @@ body {
 }
 
 .restart-link,
-.play-link {
+.quit-link {
   color: white;
   font-size: 4rem;
   color: #5a5a5a;
 }
 
-.restart-link:hover,
-.play-link:hover {
+.quit-link:hover,
+.restart-link:hover {
   color: white;
   transition: 0.8s;
   cursor: pointer;
