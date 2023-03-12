@@ -126,9 +126,6 @@ const displayController = (() => {
     quitLink: document.querySelector(".quit-link"),
   };
 
-  // Set event listeners
-
-  // Name submission
   const turnOnFormEvents = (onSubmit) => {
     elements.playerNameForm.addEventListener("submit", () => {
       let playerName;
@@ -198,9 +195,33 @@ const displayController = (() => {
   };
 
   const showNamePrompt = (mesg) => {
-    displayController.show(displayController.elements.playerNameForm);
-    displayController.show(displayController.elements.playerNamePrompt);
-    displayController.print(displayController.elements.playerNamePrompt, mesg);
+    if (!mesg) {
+      displayController.hide(displayController.elements.playerNameForm);
+      displayController.hide(displayController.elements.playerNamePrompt);
+    } else {
+      displayController.show(displayController.elements.playerNameForm);
+      displayController.show(displayController.elements.playerNamePrompt);
+      displayController.print(
+        displayController.elements.playerNamePrompt,
+        mesg
+      );
+    }
+  };
+
+  const showGameGrid = (show = true) => {
+    if (!show) {
+      displayController.hide(displayController.elements.gameGrid);
+    } else {
+      displayController.show(displayController.elements.gameGrid);
+    }
+  };
+
+  const showTurnMessages = (show = true) => {
+    if (!show) {
+      displayController.hide(elements.messageBoard);
+    } else {
+      displayController.show(elements.messageBoard);
+    }
   };
 
   return {
@@ -216,6 +237,8 @@ const displayController = (() => {
     clearMessageBoard,
     showNamePrompt,
     resetForm,
+    showGameGrid,
+    showTurnMessages,
   };
 })();
 
@@ -418,25 +441,30 @@ const gameController = (() => {
   };
 
   return {
-    getNames,
     turnOnGridEvents,
     addPlayers,
-      gameControllerState,
+    gameControllerState,
   };
 })(playerController, gameBoard, displayController); //End gameController()
 
 const onSubmit = (playerName) => {
   const newPlayer = playerController.makePlayer(playerName);
-    displayController.resetForm();
+  displayController.resetForm();
 
-    if(newPlayer.number === 2){
-        const allPlayers = playerController.getPlayers();
-        gameController.addPlayers(allPlayers);
+  if (newPlayer.number === 1) {
+    displayController.showNamePrompt("Player 2, enter your name:");
+  } else if (newPlayer.number === 2) {
+    const allPlayers = playerController.getPlayers();
+    gameController.addPlayers(allPlayers);
 
-    }
-
-
-
+    displayController.showNamePrompt(false);
+    displayController.showGameGrid();
+    displayController.showTurnMessages();
+    displayController.print(
+      displayController.elements.messageBoard,
+      gameController.gameControllerState.currentPlayer.name + " 's turn"
+    );
+  }
 };
 
 // MAIN
