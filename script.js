@@ -126,6 +126,20 @@ const displayController = (() => {
     quitLink: document.querySelector(".quit-link"),
   };
 
+  // Set event listeners
+
+  // Name submission
+  const turnOnFormEvents = (onSubmit) => {
+    elements.playerNameForm.addEventListener("submit", () => {
+      let playerName;
+      const formData = new FormData(form);
+      for (const [key, value] of formData) {
+        playerName = value;
+      }
+      onSubmit(playerName);
+    });
+  };
+
   const clearMessageBoard = () => {
     elements.messageBoard.textContent = "";
   };
@@ -144,19 +158,10 @@ const displayController = (() => {
   };
 
   const getFormData = (callBack) => {
-    let playerName;
-
-    elements.playerNameForm.addEventListener("submit", () => {
-      const formData = new FormData(form);
-      for (const [key, value] of formData) {
-        playerName = value;
-      }
-      _resetForm();
-      callBack(playerName);
-    });
+    //
   };
 
-  const _resetForm = () => {
+  const resetForm = () => {
     document.getElementById("form").reset();
   };
 
@@ -191,10 +196,17 @@ const displayController = (() => {
     el.classList.add("fade-out");
     el.style.display = "none";
   };
+
+  const showNamePrompt = (mesg) => {
+    displayController.show(displayController.elements.playerNameForm);
+    displayController.show(displayController.elements.playerNamePrompt);
+    displayController.print(displayController.elements.playerNamePrompt, mesg);
+  };
+
   return {
     hide,
     show,
-    getFormData,
+    turnOnFormEvents,
     elements,
     drawMark,
     print,
@@ -202,6 +214,8 @@ const displayController = (() => {
     clearGameBoard,
     fadeOut,
     clearMessageBoard,
+    showNamePrompt,
+    resetForm,
   };
 })();
 
@@ -211,7 +225,7 @@ const playerController = (() => {
     return allPlayers;
   };
 
-  const addPlayer = (playerName) => {
+  const makePlayer = (playerName) => {
     const tokens = ["X", "O"];
     const player = {};
     player.name = playerName;
@@ -227,7 +241,7 @@ const playerController = (() => {
   };
 
   return {
-    addPlayer,
+    makePlayer,
     getPlayers,
     resetPlayers,
   };
@@ -353,13 +367,12 @@ const gameController = (() => {
   };
 
   const getNames = () => {
-
     const callBack = (playerName) => {
       displayController.print(
         displayController.elements.playerNamePrompt,
         "Player 2 enter your name: "
       );
-      const newPlayer = playerController.addPlayer(playerName);
+
       const playerNum = newPlayer.number;
 
       // Once names are entered, and both players, and display grid
@@ -393,25 +406,44 @@ const gameController = (() => {
     displayController.getFormData(callBack);
   };
 
-  const endGame = () => {
-    state.stillPlaying = false;
-  };
-
-  const stillPlaying = () => {
-    if (state.stillPlaying) {
-      return true;
+  const addPlayers = (players) => {
+    for (const player of players) {
+      if (player.number === 1) {
+        gameControllerState.currentPlayer = player;
+        gameControllerState.playerOne = player;
+      } else if (player.number === 2) {
+        gameControllerState.playerTwo = player;
+      }
     }
-    return false;
   };
 
   return {
     getNames,
     turnOnGridEvents,
+    addPlayers,
+      gameControllerState,
   };
 })(playerController, gameBoard, displayController); //End gameController()
+
+const onSubmit = (playerName) => {
+  const newPlayer = playerController.makePlayer(playerName);
+    displayController.resetForm();
+
+    if(newPlayer.number === 2){
+        const allPlayers = playerController.getPlayers();
+        gameController.addPlayers(allPlayers);
+
+    }
+
+
+
+};
 
 // MAIN
 gameBoard.clearArray();
 displayController.hide("all");
-gameController.getNames();
+displayController.turnOnFormEvents(onSubmit);
+
+displayController.showNamePrompt("Player 1, enter your name:");
+
 gameController.turnOnGridEvents();
