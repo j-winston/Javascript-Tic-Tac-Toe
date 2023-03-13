@@ -13,7 +13,7 @@ A Javascript version of the game that no one actually ever wins.
 
 ### Try It Out
 ---
-[Play it here](https://j-winston.github.io/odin-signup-form/)
+[Play it here](https://j-winston.github.io/Javascript-Tic-Tac-Toe/)
 
 ### Introduction 
 ---
