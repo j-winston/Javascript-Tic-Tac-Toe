@@ -438,6 +438,7 @@ const onSubmit = (playerName) => {
 // MAIN
 gameBoard.clearArray();
 displayController.hide("all");
-displayController.turnOnFormEvents(onSubmit);
 displayController.showNamePrompt("Player 1, enter your name:");
+
+displayController.turnOnFormEvents(onSubmit);
 gameController.turnOnGridEvents();
