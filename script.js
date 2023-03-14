@@ -1,14 +1,10 @@
-// Look at why the variables are holding their value
-// :
 // Gameboard draws itself and keeps track of where 'X' and 'O' tokens are placed.
 
-// It also stores state if there is a winner or tie.
 const gameBoard = (() => {
-  // Private properties and methods
   const _gameArray = Array(3);
-  // Returns true if space remains
   const freeSpaceMarker = "*";
 
+  // Check if element hasn't been filled
   const _isFreeSpace = (arr) => {
     if (arr === freeSpaceMarker) {
       return true;
@@ -16,8 +12,19 @@ const gameBoard = (() => {
     return false;
   };
 
+  // Check if entire array is full or not
+  const isArrayFull = () => {
+    for (let i = 0; i < _gameArray.length; i++) {
+      for (let j = 0; j < _gameArray.length; j++) {
+        if (_isFreeSpace(_gameArray[i][j])) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   // Create a 3x3 array to store values.
-  // Later we will write this to UI
   const _intializeArray = () => {
     for (let i = 0; i < _gameArray.length; i++) {
       _gameArray[i] = Array(3);
@@ -30,18 +37,14 @@ const gameBoard = (() => {
     }
   };
 
+  // If there's no winner, and the array is full, it's a tie
   const checkForTie = () => {
-    for (let i = 0; i < _gameArray.length; i++) {
-      for (let j = 0; j < _gameArray.length; j++) {
-        if (_gameArray[i][j] === freeSpaceMarker) {
-          return false;
-        }
-      }
+    if (!checkForWinner() && isArrayFull()) {
+      return true;
     }
-    return true;
+    return false;
   };
-  //
-  // Return winning token if one exists
+
   const checkForWinner = () => {
     // Check for L->R diagonal match
     if (
@@ -60,7 +63,6 @@ const gameBoard = (() => {
     for (let i = 0; i < _gameArray.length; i++) {
       const token = _gameArray[i][0];
       if (token != freeSpaceMarker) {
-        // Check next two tokens underneath to see if they match
         if (_gameArray[i][1] === token) {
           if (_gameArray[i][2] === token) {
             return true;
@@ -86,18 +88,17 @@ const gameBoard = (() => {
     return false;
   };
 
+  // Fill array with placeholder values
   const clearArray = () => {
     _intializeArray();
   };
 
-  // Inserts player token into array and returns true if tie or winner,
-  // false if space is empty.
+  // Check for free space and insert player token into array
   const insert = (cell) => {
     const col = cell.col;
     const row = cell.row;
     const token = cell.token;
 
-    // Check for tie, check for space and then insert
     if (_isFreeSpace(_gameArray[col][row])) {
       _gameArray[col][row] = token;
       return true;
@@ -113,8 +114,10 @@ const gameBoard = (() => {
   };
 })();
 
-// Draws stuff to screen
 
+// Interact with the DOM through the display controller: 
+// hide/reveal game elements as needed and grab any form data.
+ 
 const displayController = (() => {
   const elements = {
     playAgainDisplay: document.querySelector(".play-again-display"),
@@ -315,6 +318,9 @@ const playerController = (() => {
   };
 })();
 
+// Handle the game game flow. 
+// Process clicks, keep track of turns, check for winner or tie, and 
+// display message prompts 
 const gameController = (() => {
   const gameControllerState = {
     currentPlayer: "",
@@ -322,6 +328,7 @@ const gameController = (() => {
     playerTwo: "",
   };
 
+    // Return a coordinate for whatever .div they clicked on
   const _getColRowPos = (gridNode) => {
     const col = gridNode.getAttribute("data-pos").split(",")[0];
     const row = gridNode.getAttribute("data-pos").split(",")[1];
@@ -329,6 +336,8 @@ const gameController = (() => {
     return { col, row };
   };
 
+  // Once a cell is clicked store its position, the player and their 
+    // respective game piece, aka 'token'
   const _makeCellObj = (clickedCell) => {
     const pos = _getColRowPos(clickedCell);
     const player = gameControllerState.currentPlayer;
@@ -355,7 +364,7 @@ const gameController = (() => {
     );
   };
 
-  // Main event processor
+  // Workhorse function that handles game flow
   const _main = (clickedGridEl) => {
     const currentPlayersName = gameControllerState.currentPlayer.name;
 
@@ -367,6 +376,7 @@ const gameController = (() => {
         displayController.turnOnEndEvents(currentPlayersName);
       }, 1000);
     };
+
     // => col, row, token, and player that clicked on grid square
     const cell = _makeCellObj(clickedGridEl);
 
@@ -415,6 +425,8 @@ const gameController = (() => {
   };
 })(playerController, gameBoard, displayController); //End gameController()
 
+// After user submits name, create their player, and prompt
+// next player to enter their name
 const onSubmit = (playerName) => {
   const newPlayer = playerController.makePlayer(playerName);
   displayController.resetForm();
@@ -430,15 +442,25 @@ const onSubmit = (playerName) => {
     displayController.showMessageDisplay();
     displayController.displayMessage(
       displayController.elements.messageBoard,
-      gameController.gameControllerState.currentPlayer.name + " 's turn"
+      gameController.gameControllerState.currentPlayer.name + "'s turn"
     );
   }
 };
 
-// MAIN
+// MAIN ///////////////////
+
+// Clear gameboard array just in case
 gameBoard.clearArray();
+
+// Hide UI elements on the screen except logo
 displayController.hide("all");
+
+// Prompt player1 to enter their name
 displayController.showNamePrompt("Player 1, enter your name:");
 
+// Prompt player2 name, and start up game
 displayController.turnOnFormEvents(onSubmit);
+
+// Essentially, start the game: listen for clicks,
+// check for winners, prompt for quit or restart
 gameController.turnOnGridEvents();
