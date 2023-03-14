@@ -173,13 +173,13 @@ const displayController = (() => {
     gridSquareEL.appendChild(tokenTextEl);
   };
 
-  const print = (el, mesg) => {
+  const displayMessage = (el, mesg) => {
     // show element
-    // Print message to screen
+    // displayMessage message to screen
     el.textContent = mesg;
   };
 
-  const clearPrint = () => {
+  const cleardisplayMessage = () => {
     elements.messageBoard.classList.remove("fade-in");
   };
 
@@ -196,12 +196,13 @@ const displayController = (() => {
 
   const showNamePrompt = (mesg) => {
     if (!mesg) {
+      displayController.showNamePrompt;
       displayController.hide(displayController.elements.playerNameForm);
       displayController.hide(displayController.elements.playerNamePrompt);
     } else {
       displayController.show(displayController.elements.playerNameForm);
       displayController.show(displayController.elements.playerNamePrompt);
-      displayController.print(
+      displayController.displayMessage(
         displayController.elements.playerNamePrompt,
         mesg
       );
@@ -216,7 +217,7 @@ const displayController = (() => {
     }
   };
 
-  const showTurnMessages = (show = true) => {
+  const showMessageDisplay = (show = true) => {
     if (!show) {
       displayController.hide(elements.messageBoard);
     } else {
@@ -253,16 +254,16 @@ const displayController = (() => {
       displayController.show(displayController.elements.gameGrid);
       displayController.clearMessageBoard();
       displayController.show(displayController.elements.messageBoard);
-      displayController.print(
+      displayController.displayMessage(
         displayController.elements.messageBoard,
         playerName + " 's turn"
       );
     });
   };
 
-  const printWinner = (winner) => {
+  const displayMessageWinner = (winner) => {
     show(elements.messageBoard);
-    print(elements.messageBoard, winner + " wins!");
+    displayMessage(elements.messageBoard, winner + " wins!");
   };
 
   return {
@@ -271,17 +272,17 @@ const displayController = (() => {
     turnOnFormEvents,
     elements,
     drawMark,
-    print,
-    clearPrint,
+    displayMessage,
+    cleardisplayMessage,
     clearGameBoard,
     fadeOut,
     clearMessageBoard,
     showNamePrompt,
     resetForm,
     showGameGrid,
-    showTurnMessages,
+    showMessageDisplay,
     showQuitMessage,
-    printWinner,
+    displayMessageWinner,
     turnOnEndEvents,
   };
 })();
@@ -348,35 +349,40 @@ const gameController = (() => {
       gameControllerState.currentPlayer = gameControllerState.playerOne;
     }
 
-    displayController.print(
+    displayController.displayMessage(
       displayController.elements.messageBoard,
       gameControllerState.currentPlayer.name + "'s turn"
     );
   };
+
   // Main event processor
   const _main = (clickedGridEl) => {
     const currentPlayersName = gameControllerState.currentPlayer.name;
 
-    // returns an obj with col, row, player and token used
+    const showQuitOrRestart = () => {
+      // Wait 1 second and display quit/restart
+      setTimeout(() => {
+        displayController.showGameGrid(false);
+        displayController.showQuitMessage();
+        displayController.turnOnEndEvents(currentPlayersName);
+      }, 1000);
+    };
+    // => col, row, token, and player that clicked on grid square
     const cell = _makeCellObj(clickedGridEl);
 
     if (gameBoard.insert(cell)) {
       displayController.drawMark(cell);
 
       if (gameBoard.checkForWinner()) {
-        displayController.showTurnMessages();
-        displayController.printWinner(currentPlayersName);
-        // Wait 1 second and display quit/restart
-        setTimeout(() => {
-          displayController.showGameGrid(false);
-          displayController.showQuitMessage();
-          displayController.turnOnEndEvents(currentPlayersName);
-        }, 1000);
+        displayController.showMessageDisplay();
+        displayController.displayMessageWinner(currentPlayersName);
+        showQuitOrRestart();
       } else if (gameBoard.checkForTie()) {
-        displayController.print(
+        displayController.displayMessage(
           displayController.elements.messageBoard,
           "Cat's Game"
         );
+        showQuitOrRestart();
       } else {
         _switchTurns();
       }
@@ -421,8 +427,8 @@ const onSubmit = (playerName) => {
 
     displayController.showNamePrompt(false);
     displayController.showGameGrid();
-    displayController.showTurnMessages();
-    displayController.print(
+    displayController.showMessageDisplay();
+    displayController.displayMessage(
       displayController.elements.messageBoard,
       gameController.gameControllerState.currentPlayer.name + " 's turn"
     );
@@ -433,7 +439,5 @@ const onSubmit = (playerName) => {
 gameBoard.clearArray();
 displayController.hide("all");
 displayController.turnOnFormEvents(onSubmit);
-
 displayController.showNamePrompt("Player 1, enter your name:");
-
 gameController.turnOnGridEvents();
